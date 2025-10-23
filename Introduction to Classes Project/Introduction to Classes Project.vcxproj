@@ -125,9 +125,11 @@
   <ItemGroup>
     <ClCompile Include="Date.cpp" />
     <ClCompile Include="Introduction to Classes Project.cpp" />
+    <ClCompile Include="NumberArray.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Date.h" />
+    <ClInclude Include="NumberArray.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

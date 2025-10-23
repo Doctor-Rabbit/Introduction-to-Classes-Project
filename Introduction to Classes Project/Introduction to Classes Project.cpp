@@ -1,66 +1,65 @@
 #include <iostream>
-#include "Date.h"
+#include <iomanip>
+#include <random>
+#include "NumberArray.h"
 
 int main() {
-    // Test default constructor
-    Date dDefault;
-    std::cout << "Test default constructor: " << dDefault.formatNumeric() << '\n';
+    using std::cout;
+    using std::fixed;
+    using std::setprecision;
 
-    // Test constructor with valid date
-    Date dValid(2, 28, 2009);
-    std::cout << "Test constructor with valid date: " << dValid.formatNumeric() << '\n';
+    cout << fixed << setprecision(1);
 
-    // Test constructor with invalid month => should become default
-    Date dBadMonth(45, 2, 2009);
-    std::cout << "Test constructor with invalid month (45, 2, 2009): Month invalid "
-        << dBadMonth.formatNumeric() << '\n';
+    // ---- Test default constructor (size = MAX_SIZE = 10) ----
+    cout << "Test default constructor (size = " << NumberArray::MAX_SIZE << "):\n";
+    NumberArray A; // default size (10)
 
-    // Test constructor with invalid day (non-leap year Feb 29) => default
-    Date dBadDay(2, 29, 2009);
-    std::cout << "Test constructor with invalid day (2/29/2009): Day invalid "
-        << dBadDay.formatNumeric() << '\n';
+    // Fill with random numbers in [-10.0, 10.0]
+    std::mt19937 rng(12345); // deterministic seed for repeatable results
+    std::uniform_real_distribution<double> dist(-10.0, 10.0);
 
-    // Test setDate with bad month => default
-    Date d1; // start from default
-    d1.setDate(13, 1, 1900);
-    std::cout << "Test setDate with bad month (13): Month invalid "
-        << d1.formatNumeric() << '\n';
+    for (int i = 0; i < A.size(); ++i) {
+        A.setNumber(i, dist(rng));
+    }
 
-    // Test setDate with bad day (April has 30)
-    Date d2;
-    d2.setDate(4, 31, 2009);
-    std::cout << "Test setDate with bad day (4, 31, 2009) Day invalid "
-        << d2.formatNumeric() << '\n';
+    cout << "A contents: ";
+    A.print(cout);
+    cout << "\nmin(A) = " << A.min()
+        << ", max(A) = " << A.max()
+        << ", avg(A) = " << A.average() << "\n\n";
 
-    // Test for leap year with bad date (2/29/2009) -> constructor makes it default
-    Date dBadLeap(2, 29, 2009);
-    std::cout << "Test for leap year with bad date (2/29/2009): Day invalid "
-        << dBadLeap.formatNumeric() << '\n';
+    // ---- Test parameterized constructor (size = 15; <= 20 as requested) ----
+    cout << "Test parameterized constructor (size = 15):\n";
+    NumberArray B(15);
 
-    // Test for leap year with good date (2/29/2008) -> valid
-    Date dGoodLeap(2, 29, 2008);
-    std::cout << "Test for leap year with good date (2/29/2008): "
-        << dGoodLeap.formatNumeric() << '\n';
+    for (int i = 0; i < B.size(); ++i) {
+        B.setNumber(i, dist(rng));
+    }
 
-    // Test the print formats
-    std::cout << "Test the print formats:\n";
-    std::cout << dGoodLeap.formatMonthDayYear() << '\n'; // "February 29, 2008"
-    std::cout << dGoodLeap.formatDayMonthYear() << '\n'; // "29 February 2008"
+    cout << "B contents: ";
+    B.print(cout);
+    cout << "\nmin(B) = " << B.min()
+        << ", max(B) = " << B.max()
+        << ", avg(B) = " << B.average() << "\n\n";
 
-    // A couple of extra spot checks (optional):
-    Date end31(1, 31, 2021); // Jan 31 ok
-    std::cout << "Jan last day check: " << end31.formatNumeric()
-        << " (lastDay=" << end31.lastDay() << ")\n";
+    // ---- Out-of-bounds tests ----
+    cout << "Out-of-bounds tests on A:\n";
+    A.setNumber(-1, 3.3);              // invalid: low
+    A.setNumber(A.size(), 7.7);        // invalid: high
+    double v1 = A.getNumber(-2);       // invalid: low (returns default)
+    double v2 = A.getNumber(A.size()); // invalid: high (returns default)
+    cout << "A.getNumber(-2) = " << v1
+        << ", A.getNumber(size) = " << v2 << "\n\n";
 
-    Date febNonLeap(2, 28, 2021);
-    std::cout << "Non-leap Feb: " << febNonLeap.formatNumeric()
-        << " (isLeap=" << (febNonLeap.isLeapYear() ? "true" : "false")
-        << ", lastDay=" << febNonLeap.lastDay() << ")\n";
+    // ---- Show that zeros were the initial values (construct a small array and don't set it) ----
+    cout << "Fresh array C (size = 5), should be all zeros:\n";
+    NumberArray C(5);
+    cout << "C contents: ";
+    C.print(cout);
+    cout << "\nmin(C) = " << C.min()
+        << ", max(C) = " << C.max()
+        << ", avg(C) = " << C.average() << "\n\n";
 
-    Date febLeap(2, 29, 2020);
-    std::cout << "Leap Feb: " << febLeap.formatNumeric()
-        << " (isLeap=" << (febLeap.isLeapYear() ? "true" : "false")
-        << ", lastDay=" << febLeap.lastDay() << ")\n";
-
+    cout << "Done. Destructors will announce themselves below.\n";
     return 0;
 }
