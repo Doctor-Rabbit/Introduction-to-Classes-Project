@@ -2,6 +2,8 @@
 #define DATE_H
 
 #include <string>
+#include <iostream>
+#include <cstdint>
 
 class Date {
 public:
@@ -29,6 +31,15 @@ public:
     std::string formatMonthDayYear() const;    // "December 25, 2021"
     std::string formatDayMonthYear() const;    // "25 December 2021"
 
+    // Operators
+    Date& operator++(); // ++d  -> increment day, handle month/year rollover
+    Date& operator--(); // --d  -> decrement day, handle month/year borrow
+
+    Date operator++(int); // d++
+    Date operator--(int); // d--
+
+    long long operator - (const Date& rhs) const;     // Subtraction: absolute day difference between *this and rhs
+
 private:
     int month;
     int day;
@@ -37,8 +48,20 @@ private:
     bool isValidMonth(int m) const;
     bool isValidYear(int y) const;
     bool isValidDate(int m, int d, int y) const;
+
+    // Helpers for ++ / --
+    void incrementOneDay();
+    void decrementOneDay();
+
+    // Serial day number (proleptic Gregorian) for differences
+    long long serialDays() const;
+
+    // Static helper for serial algorithm
+    static long long daysFromCivil(int y, int m, int d);
 };
 
-
+// Stream operators
+std::ostream & operator<<(std::ostream & os, const Date & d); // "April 18, 2018"
+std::istream& operator>>(std::istream& is, Date& d);       // prompts & reads
 
 #endif // DATE_H
