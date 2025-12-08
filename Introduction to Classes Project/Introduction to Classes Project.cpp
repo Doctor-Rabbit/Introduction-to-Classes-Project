@@ -1,66 +1,129 @@
 #include <iostream>
-#include "Date.h"
+#include <iomanip>
+#include <random>
+#include "NumberArray.hpp"
 
 int main() {
-    // Test default constructor
-    Date dDefault;
-    std::cout << "Test default constructor: " << dDefault.formatNumeric() << '\n';
+    using std::cout;
+    using std::fixed;
+    using std::setprecision;
 
-    // Test constructor with valid date
-    Date dValid(2, 28, 2009);
-    std::cout << "Test constructor with valid date: " << dValid.formatNumeric() << '\n';
+    std::mt19937 rng(12345);
+    std::uniform_int_distribution<int>    idist(0, 100);
+    std::uniform_real_distribution<double> ddist(0.0, 100.0);
 
-    // Test constructor with invalid month => should become default
-    Date dBadMonth(45, 2, 2009);
-    std::cout << "Test constructor with invalid month (45, 2, 2009): Month invalid "
-        << dBadMonth.formatNumeric() << '\n';
+    cout << "----- Test constructors -----\n";
 
-    // Test constructor with invalid day (non-leap year Feb 29) => default
-    Date dBadDay(2, 29, 2009);
-    std::cout << "Test constructor with invalid day (2/29/2009): Day invalid "
-        << dBadDay.formatNumeric() << '\n';
+    NumberArray<int>    ai_default; // size 10
+    NumberArray<double> ad_default; // size 10
 
-    // Test setDate with bad month => default
-    Date d1; // start from default
-    d1.setDate(13, 1, 1900);
-    std::cout << "Test setDate with bad month (13): Month invalid "
-        << d1.formatNumeric() << '\n';
+    cout << "From default constructor: Integer array of size " << ai_default.size() << "\n";
+    ai_default.print(cout);
 
-    // Test setDate with bad day (April has 30)
-    Date d2;
-    d2.setDate(4, 31, 2009);
-    std::cout << "Test setDate with bad day (4, 31, 2009) Day invalid "
-        << d2.formatNumeric() << '\n';
+    cout << "From default constructor: Double array of size " << ad_default.size() << "\n";
+    cout << fixed << setprecision(1);
+    ad_default.print(cout);
 
-    // Test for leap year with bad date (2/29/2009) -> constructor makes it default
-    Date dBadLeap(2, 29, 2009);
-    std::cout << "Test for leap year with bad date (2/29/2009): Day invalid "
-        << dBadLeap.formatNumeric() << '\n';
+    NumberArray<int>    ai_param(15);
+    NumberArray<double> ad_param(15);
 
-    // Test for leap year with good date (2/29/2008) -> valid
-    Date dGoodLeap(2, 29, 2008);
-    std::cout << "Test for leap year with good date (2/29/2008): "
-        << dGoodLeap.formatNumeric() << '\n';
+    cout << "From constructor with parameters: Integer array of size " << ai_param.size() << "\n";
+    cout.unsetf(std::ios::floatfield); // back to ints
+    ai_param.print(cout);
 
-    // Test the print formats
-    std::cout << "Test the print formats:\n";
-    std::cout << dGoodLeap.formatMonthDayYear() << '\n'; // "February 29, 2008"
-    std::cout << dGoodLeap.formatDayMonthYear() << '\n'; // "29 February 2008"
+    cout << fixed << setprecision(1);
+    cout << "From constructor with parameters: Double array of size " << ad_param.size() << "\n";
+    ad_param.print(cout);
 
-    // A couple of extra spot checks (optional):
-    Date end31(1, 31, 2021); // Jan 31 ok
-    std::cout << "Jan last day check: " << end31.formatNumeric()
-        << " (lastDay=" << end31.lastDay() << ")\n";
+    cout << "----- Test mutator -----\n";
+    // Fill arrays
+    for (std::size_t i = 0; i < ai_param.size(); ++i) {
+        ai_param.setNumber(i, idist(rng));
+    }
+    for (std::size_t i = 0; i < ad_param.size(); ++i) {
+        ad_param.setNumber(i, std::round(ddist(rng) * 10.0) / 10.0); // one decimal
+    }
 
-    Date febNonLeap(2, 28, 2021);
-    std::cout << "Non-leap Feb: " << febNonLeap.formatNumeric()
-        << " (isLeap=" << (febNonLeap.isLeapYear() ? "true" : "false")
-        << ", lastDay=" << febNonLeap.lastDay() << ")\n";
+    cout.unsetf(std::ios::floatfield);
+    cout << "Integer array filled with numbers:\n";
+    ai_param.print(cout);
 
-    Date febLeap(2, 29, 2020);
-    std::cout << "Leap Feb: " << febLeap.formatNumeric()
-        << " (isLeap=" << (febLeap.isLeapYear() ? "true" : "false")
-        << ", lastDay=" << febLeap.lastDay() << ")\n";
+    cout << fixed << setprecision(1);
+    cout << "Double array filled with numbers:\n";
+    ad_param.print(cout);
 
-    return 0;
+    cout << "Trying to set a number with an out of bounds index (20):\n";
+    cout << "Integer array ...\n";
+    try {
+        ai_param.setNumber(20, 123);
+    }
+    catch (const std::out_of_range& e) {
+        cout << e.what() << '\n';
+    }
+    cout << "Double array ...\n";
+    try {
+        ad_param.setNumber(20, 1.23);
+    }
+    catch (const std::out_of_range& e) {
+        cout << e.what() << '\n';
+    }
+
+    cout << "----- Test accessors _____\n";
+    cout.unsetf(std::ios::floatfield);
+    cout << "Access integer item at index 5: ";
+    try {
+        cout << ai_param.getNumber(5) << '\n';
+    }
+    catch (const std::out_of_range& e) {
+        cout << e.what() << '\n';
+    }
+
+    cout << fixed << setprecision(1);
+    cout << "Access double item at index 5: ";
+    try {
+        cout << ad_param.getNumber(5) << '\n';
+    }
+    catch (const std::out_of_range& e) {
+        cout << e.what() << '\n';
+    }
+
+    cout << "Trying to access a number with an out of bounds index (20):\n";
+    cout << "Integer array ...\n";
+    try {
+        (void)ai_param.getNumber(20);
+    }
+    catch (const std::out_of_range& e) {
+        cout << e.what() << '\n';
+    }
+    cout << "Double array ...\n";
+    try {
+        (void)ad_param.getNumber(20);
+    }
+    catch (const std::out_of_range& e) {
+        cout << e.what() << '\n';
+    }
+
+    cout.unsetf(std::ios::floatfield);
+    cout << "The minimum value in the integer array is: " << ai_param.min() << '\n';
+    cout << "The maximum value in the integer array is: " << ai_param.max() << '\n';
+    cout << fixed << setprecision(1);
+    cout << "The average of the values in the integer array is: " << ai_param.average() << '\n';
+
+    cout << "The minimum value in the double array is: " << ad_param.min() << '\n';
+    cout << "The maximum value in the double array is: " << ad_param.max() << '\n';
+    cout << "The average of the values in the double array is: " << ad_param.average() << '\n';
+
+    cout.unsetf(std::ios::floatfield);
+    cout << "----- Print arrays -----\n";
+    cout << "Integer array:\n";
+    ai_param.print(cout);
+
+    cout << fixed << setprecision(1);
+    cout << "Double array:\n";
+    ad_param.print(cout);
+
+    cout.unsetf(std::ios::floatfield);
+    cout << "----- Test destructor -----\n";
+    cout << "Exiting program, destructor will be called to free memory.\n";
+    return 0; // destructors will print messages
 }
